@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blash Triv War</title>
+    <link rel="stylesheet" href="Main_menu.css">
+    <link rel="icon" type="image/x-icon" href="icon/Blash Triv War.ico">
+    <script src="main.js"></script>
+</head>
+<body>
+    <div class="menu-container"> 
+        <div class="logo">
+            <h1>Blash Triv War</h1>
+        </div>
+        <nav class="menu">
+            <ul>
+                <li><button class="menu-btn" id="startBtn">Play Games</button></li>
+                <li><button class="menu-btn" id="settingsBtn">Information</button></li>
+                <li><button class="menu-btn" id="exitBtn">Exit Games</button></li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Audio files -->
+    <audio id="clickSound" src="enemy_hit.mp3" preload="auto"></audio>
+    <audio id="backgroundMusic" src="music_play.mp3" preload="auto"></audio>
+
+    <script src="Main_menu.js"></script>
+    <script>
+        // Play background music when the page loads
+        window.addEventListener('load', function() {
+            var backgroundMusic = document.getElementById('backgroundMusic');
+            backgroundMusic.play();
+        });
+    </script>
+    <script>
+            // Ambil elemen tombol
+    const startBtn = document.getElementById('startBtn');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const exitBtn = document.getElementById('exitBtn');
+
+    // Ambil elemen audio
+    const clickSound = document.getElementById('clickSound');
+
+    // Fungsi untuk memainkan suara klik
+    function playClickSound() {
+    clickSound.currentTime = 0; // Reset suara agar bisa diputar dari awal
+    clickSound.play(); // Mainkan suara
+    }
+
+    // Tambahkan event listener ke tombol-tombol
+    startBtn.addEventListener('click', function() {
+    playClickSound();
+        window.location.href = 'Pilih_game.html'; // Pergi ke halaman pilih game
+        playClickSound();
+    // Logic untuk memulai game
+    });
+
+    settingsBtn.addEventListener('click', function() {
+    playClickSound();
+    window.location.href = 'Game_info.html';
+    playClickSound();
+    // Logic untuk pengaturan multiplayer
+    });
+
+    exitBtn.addEventListener('click', function() {
+    playClickSound();
+        window.close(); // Tutup aplikasi
+        playClickSound();
+    // Logic untuk keluar dari game
+    });
+
+    </script>
+</body>
+</html>

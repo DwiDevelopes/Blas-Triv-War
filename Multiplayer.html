@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blash Triv War</title>
+    <link rel="stylesheet" href="Main.css">
+    <link rel="icon" type="image/x-icon" href="icon/Blash Triv War.ico">
+</head>
+<body>
+    <div id="game-container">
+        <h1>Blash Triv War</h1>
+        <canvas id="gameCanvas"></canvas>
+        <span>Score: <span id="score">0</span></span>
+        <p id="level">Level: 1</p>
+        <button id="startButton" class="game-button">Start Game</button>
+        <a href="index.html"><button id="startButton" class="game-button">Back to Menu</button></a>
+    </div>
+    
+    <div id="game-over-screen">
+        <p style="font-size: 50px;"><center>Game Over!</center></p>
+        <button id="restartButton" class="game-button">Restart Game</button>
+        <a href="index.html"><button id="restartButton" class="game-button">Back to Menu</button></a>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const startButton = document.getElementById('startButton');
+        const scoreDisplay = document.getElementById('score');
+        const levelDisplay = document.getElementById('level');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const restartButton = document.getElementById('restartButton');
+
+        canvas.width = 800;
+        canvas.height = 600;
+
+        let score = 0;
+        let level = 1;
+        let levelUpScore = 50; // Score threshold for level-up
+        let bullets = [];
+        let enemies = [];
+        let enemyProjectiles = [];
+        let player1 = { x: 50, y: canvas.height / 2, width: 50, height: 50, speed: 5 };
+        let player2 = { x: 50, y: canvas.height / 2 + 100, width: 50, height: 50, speed: 5 };
+        let keyState = { up: false, down: false, left: false, right: false, w: false, s: false, a: false, d: false };
+        let gameRunning = false;
+
+        // Load images
+        const playerImage = new Image();
+        playerImage.src = 'user.png';  // Replace with actual player image URL
+        const enemyImage = new Image();
+        enemyImage.src = 'enemy.png';  // Replace with actual enemy image URL
+
+        // Load sounds
+        const shootSound = new Audio('hit_user.mp3');  // Replace with actual shoot sound URL
+        const enemyHitSound = new Audio('hit_enemy.mp3');  // Replace with actual enemy hit sound URL
+        const gameOverSound = new Audio('preview.mp3');  // Replace with actual game over sound URL
+        const enemyShootSound = new Audio('enemy_hit.mp3');  // Replace with actual enemy shoot sound URL
+
+        // Background music
+        const backgroundMusic = new Audio('music_play.mp3'); // Replace with actual music URL
+        const levelUpSound = new Audio('level_up.mp3'); // Replace with actual level up sound URL
+        backgroundMusic.loop = true;  // Loop the music
+        backgroundMusic.volume = 0.5; // Set volume (0 to 1)
+
+        // Event listeners for player movement and shooting
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp') keyState.up = true;
+            if (e.key === 'ArrowDown') keyState.down = true;
+            if (e.key === 'ArrowLeft') keyState.left = true;
+            if (e.key === 'ArrowRight') keyState.right = true;
+            if (e.key === ' ') shoot(player1);
+            if (e.key === 'w') keyState.w = true;
+            if (e.key === 's') keyState.s = true;
+            if (e.key === 'a') keyState.a = true;
+            if (e.key === 'd') keyState.d = true;
+            if (e.key === 'Shift') shoot(player2);
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowUp') keyState.up = false;
+            if (e.key === 'ArrowDown') keyState.down = false;
+            if (e.key === 'ArrowLeft') keyState.left = false;
+            if (e.key === 'ArrowRight') keyState.right = false;
+            if (e.key === 'w') keyState.w = false;
+            if (e.key === 's') keyState.s = false;
+            if (e.key === 'a') keyState.a = false;
+            if (e.key === 'd') keyState.d = false;
+        });
+
+        function movePlayer(player, keyState) {
+            if (keyState.up && player.y > 0) player.y -= player.speed;
+            if (keyState.down && player.y < canvas.height - player.height) player.y += player.speed;
+            if (keyState.left && player.x > 0) player.x -= player.speed;
+            if (keyState.right && player.x < canvas.width - player.width) player.x += player.speed;
+        }
+
+        function movePlayer2(player, keyState) {
+            if (keyState.w && player.y > 0) player.y -= player.speed;
+            if (keyState.s && player.y < canvas.height - player.height) player.y += player.speed;
+            if (keyState.a && player.x > 0) player.x -= player.speed;
+            if (keyState.d && player.x < canvas.width - player.width) player.x += player.speed;
+        }
+
+        function shoot(player) {
+            bullets.push({ x: player.x + player.width, y: player.y + player.height / 2, width: 10, height: 5, speed: 7 });
+            shootSound.play(); // Play shoot sound
+        }
+
+        function spawnEnemy() {
+            // Menentukan jumlah musuh yang muncul berdasarkan level
+            const numberOfEnemies = Math.floor(level / 2) + 1;  // Setiap level, spawn lebih banyak musuh
+        
+            // Spawn musuh baru
+            for (let i = 0; i < numberOfEnemies; i++) {
+                const enemyX = canvas.width;
+                const enemyY = Math.random() * (canvas.height - 50);
+                enemies.push({ x: enemyX, y: enemyY, width: 50, height: 50, speed: 3 + level }); // Musuh semakin cepat seiring bertambahnya level
+            }
+        }
+        
+
+        function spawnEnemyProjectile(enemy) {
+            const projSpeed = 5 + level;  // Increase speed per level
+            enemyProjectiles.push({ x: enemy.x, y: enemy.y + enemy.height / 2, width: 5, height: 15, speed: projSpeed });
+            enemyShootSound.play();  // Play enemy shoot sound
+        }
+
+        function moveBullets() {
+            bullets.forEach(bullet => bullet.x += bullet.speed);
+        }
+
+        function moveEnemies() {
+            enemies.forEach(enemy => enemy.x -= enemy.speed);
+        }
+
+        function moveEnemyProjectiles() {
+            enemyProjectiles.forEach(proj => proj.x -= proj.speed);
+        }
+
+        function checkCollisions() {
+            // Bullet vs Enemy Collision
+            bullets.forEach((bullet, bulletIndex) => {
+                enemies.forEach((enemy, enemyIndex) => {
+                    if (bullet.x < enemy.x + enemy.width &&
+                        bullet.x + bullet.width > enemy.x &&
+                        bullet.y < enemy.y + enemy.height &&
+                        bullet.y + bullet.height > enemy.y) {
+                        // Remove bullet and enemy
+                        bullets.splice(bulletIndex, 1);
+                        enemies.splice(enemyIndex, 1);
+                        score += 10; // Increase score
+                        enemyHitSound.play(); // Play enemy hit sound
+                    }
+                });
+            });
+
+            // Player vs Enemy Collision
+            enemies.forEach(enemy => {
+                if ((player1.x < enemy.x + enemy.width &&
+                    player1.x + player1.width > enemy.x &&
+                    player1.y < enemy.y + enemy.height &&
+                    player1.y + player1.height > enemy.y) ||
+                    (player2.x < enemy.x + enemy.width &&
+                    player2.x + player2.width > enemy.x &&
+                    player2.y < enemy.y + enemy.height &&
+                    player2.y + player2.height > enemy.y)) {
+                    gameOverSound.play(); // Play game over sound
+                    showGameOverScreen();
+                    resetGame();
+                }
+            });
+
+            // Player vs Enemy Projectile Collision
+            enemyProjectiles.forEach((proj, projIndex) => {
+                if ((player1.x < proj.x + proj.width &&
+                    player1.x + player1.width > proj.x &&
+                    player1.y < proj.y + proj.height &&
+                    player1.y + player1.height > proj.y) ||
+                    (player2.x < proj.x + proj.width &&
+                    player2.x + player2.width > proj.x &&
+                    player2.y < proj.y + proj.height &&
+                    player2.y + player2.height > proj.y)) {
+                    gameOverSound.play(); // Play game over sound
+                    showGameOverScreen();
+                    resetGame();
+                }
+            });
+        }
+
+        function showGameOverScreen() {
+            gameOverScreen.style.display = 'block';
+            startButton.disabled = true; // Disable start button
+        }
+
+        function levelUp() {
+            // Level up jika skor melebihi ambang batas level yang ditentukan
+            if (score >= levelUpScore) {
+                level++;  // Naikkan level
+                levelDisplay.textContent = `Level: ${level}`;  // Update tampilan level
+                levelUpScore = levelUpScore + (level * 10);  // Naikkan ambang batas level lebih banyak (misal, ambang batas semakin besar)
+                levelUpSound.play();  // Play level up sound
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw player
+            ctx.drawImage(playerImage, player1.x, player1.y, player1.width, player1.height);
+            ctx.drawImage(playerImage, player2.x, player2.y, player2.width, player2.height);
+
+            // Draw bullets
+            bullets.forEach(bullet => {
+                ctx.fillStyle = 'yellow';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+            });
+
+            // Draw enemies
+            enemies.forEach(enemy => {
+                ctx.drawImage(enemyImage, enemy.x, enemy.y, enemy.width, enemy.height);
+            });
+
+            // Draw enemy projectiles
+            enemyProjectiles.forEach(proj => {
+                ctx.fillStyle = 'red';
+                ctx.fillRect(proj.x, proj.y, proj.width, proj.height);
+            });
+
+            // Update score and level
+            scoreDisplay.textContent = score;
+            levelDisplay.textContent = `Level: ${level}`;
+
+            // Move player, bullets, enemies, projectiles
+            movePlayer(player1, keyState);
+            movePlayer2(player2, keyState);
+            moveBullets();
+            moveEnemies();
+            moveEnemyProjectiles();
+            checkCollisions();
+
+            // Check for level-up
+            levelUp();
+        }
+
+        function gameLoop() {
+            if (!gameRunning) return;
+
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function resetGame() {
+            score = 0;
+            level = 1;
+            levelUpScore = 50;
+            bullets = [];
+            enemies = [];
+            enemyProjectiles = [];
+            player1 = { x: 50, y: canvas.height / 2, width: 50, height: 50, speed: 5 };
+            player2 = { x: 50, y: canvas.height / 2 + 100, width: 50, height: 50, speed: 5 };
+            gameRunning = false;
+            startButton.textContent = 'Start Game';
+            startButton.disabled = false;
+            backgroundMusic.pause(); // Pause background music on game over
+        }
+
+        // Start/Restart Game Button
+        startButton.addEventListener('click', () => {
+            if (!gameRunning) {
+                gameRunning = true;
+                startButton.disabled = true;
+                startButton.textContent = 'Game Running...';
+                gameOverScreen.style.display = 'none'; // Hide game over screen
+                setInterval(spawnEnemy, 2000 - level * 100); // Kurangi interval spawn seiring dengan level
+                setInterval(() => {
+                    if (gameRunning) {
+                        // Spawn enemy projectiles
+                        enemies.forEach(enemy => spawnEnemyProjectile(enemy));
+                    }
+                }, 1000); // Enemies shoot every second
+                backgroundMusic.play(); // Start background music
+                gameLoop();
+            }
+        });
+        
+
+        restartButton.addEventListener('click', () => {
+            resetGame();
+            startButton.click(); // Automatically start the game when restarting
+        });
+
+    </script>
+</body>
+</html>
