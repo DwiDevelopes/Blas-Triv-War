@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blash Triv War</title>
-    <link rel="stylesheet" href="Main.css">
+    <link rel="stylesheet" href="multiplayer.css/multiplayer.css">
     <link rel="icon" type="image/x-icon" href="icon/Blash Triv War.ico">
 </head>
 <body>
@@ -16,7 +16,17 @@
         <button id="startButton" class="game-button">Start Game</button>
         <a href="index.html"><button id="startButton" class="game-button">Back to Menu</button></a>
     </div>
+
+    <div id="joystick-area-player1" class="joystick-area">
+        <div id="joystick-player1" class="joystick"></div>
+    </div>
+    <button id="shoot-button-player1" class="shoot-button">Shoot(P1)</button>
     
+    <div id="joystick-area-player2" class="joystick-area">
+        <div id="joystick-player2" class="joystick"></div>
+    </div>
+    <button id="shoot-button-player2" class="shoot-button">Shoot(P2)</button>
+     
     <div id="game-over-screen">
         <p style="font-size: 50px;"><center>Game Over!</center></p>
         <button id="restartButton" class="game-button">Restart Game</button>
@@ -291,6 +301,99 @@
             startButton.click(); // Automatically start the game when restarting
         });
 
+// Dapatkan elemen joystick dan tombol tembak untuk kedua pemain
+const joystickPlayer1 = document.getElementById('joystick-player1');
+const joystickAreaPlayer1 = document.getElementById('joystick-area-player1');
+const shootButtonPlayer1 = document.getElementById('shoot-button-player1');
+
+const joystickPlayer2 = document.getElementById('joystick-player2');
+const joystickAreaPlayer2 = document.getElementById('joystick-area-player2');
+const shootButtonPlayer2 = document.getElementById('shoot-button-player2');
+
+// Variabel untuk menyimpan posisi joystick
+let joystickPositionPlayer1 = { x: 0, y: 0 };
+let joystickPositionPlayer2 = { x: 0, y: 0 };
+const joystickRadius = 50; // Radius area joystick
+
+// Event listener untuk joystick pemain 1
+joystickAreaPlayer1.addEventListener('touchstart', (e) => handleJoystickStart(e, joystickPlayer1, joystickPositionPlayer1));
+joystickAreaPlayer1.addEventListener('touchmove', (e) => handleJoystickMove(e, joystickPlayer1, joystickPositionPlayer1));
+joystickAreaPlayer1.addEventListener('touchend', () => handleJoystickEnd(joystickPlayer1, joystickPositionPlayer1));
+
+// Event listener untuk joystick pemain 2
+joystickAreaPlayer2.addEventListener('touchstart', (e) => handleJoystickStart(e, joystickPlayer2, joystickPositionPlayer2));
+joystickAreaPlayer2.addEventListener('touchmove', (e) => handleJoystickMove(e, joystickPlayer2, joystickPositionPlayer2));
+joystickAreaPlayer2.addEventListener('touchend', () => handleJoystickEnd(joystickPlayer2, joystickPositionPlayer2));
+
+// Event listener untuk tombol tembak pemain 1
+shootButtonPlayer1.addEventListener('touchstart', () => shoot(player1));
+
+// Event listener untuk tombol tembak pemain 2
+shootButtonPlayer2.addEventListener('touchstart', () => shoot(player2));
+
+// Fungsi untuk memulai gerakan joystick
+function handleJoystickStart(event, joystick, joystickPosition) {
+    event.preventDefault();
+    updateJoystickPosition(event.touches[0], joystick, joystickPosition);
+}
+
+// Fungsi untuk menggerakkan joystick
+function handleJoystickMove(event, joystick, joystickPosition) {
+    event.preventDefault();
+    updateJoystickPosition(event.touches[0], joystick, joystickPosition);
+}
+
+// Fungsi untuk menghentikan gerakan joystick
+function handleJoystickEnd(joystick, joystickPosition) {
+    joystickPosition.x = 0;
+    joystickPosition.y = 0;
+    joystick.style.transform = `translate(-50%, -50%)`;
+    updatePlayerMovement(joystickPosition);
+}
+
+// Fungsi untuk memperbarui posisi joystick
+function updateJoystickPosition(touch, joystick, joystickPosition) {
+    const rect = joystick.parentElement.getBoundingClientRect();
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+
+    // Hitung posisi relatif sentuhan
+    const touchX = touch.clientX - rect.left - centerX;
+    const touchY = touch.clientY - rect.top - centerY;
+
+    // Batasi gerakan joystick dalam radius
+    const distance = Math.sqrt(touchX * touchX + touchY * touchY);
+    if (distance <= joystickRadius) {
+        joystickPosition.x = touchX;
+        joystickPosition.y = touchY;
+    } else {
+        const angle = Math.atan2(touchY, touchX);
+        joystickPosition.x = Math.cos(angle) * joystickRadius;
+        joystickPosition.y = Math.sin(angle) * joystickRadius;
+    }
+
+    // Pindahkan joystick
+    joystick.style.transform = `translate(${joystickPosition.x}px, ${joystickPosition.y}px) translate(-50%, -50%)`;
+
+    // Perbarui pergerakan pemain
+    updatePlayerMovement(joystickPosition);
+}
+
+// Fungsi untuk memperbarui pergerakan pemain berdasarkan joystick
+function updatePlayerMovement(joystickPosition) {
+    const sensitivity = 2; // Sesuaikan kecepatan gerakan
+    if (joystickPosition === joystickPositionPlayer1) {
+        keyState.up = joystickPosition.y < -10; // Gerak ke atas
+        keyState.down = joystickPosition.y > 10; // Gerak ke bawah
+        keyState.left = joystickPosition.x < -10; // Gerak ke kiri
+        keyState.right = joystickPosition.x > 10; // Gerak ke kanan
+    } else if (joystickPosition === joystickPositionPlayer2) {
+        keyState.w = joystickPosition.y < -10; // Gerak ke atas
+        keyState.s = joystickPosition.y > 10; // Gerak ke bawah
+        keyState.a = joystickPosition.x < -10; // Gerak ke kiri
+        keyState.d = joystickPosition.x > 10; // Gerak ke kanan
+    }
+}
     </script>
 </body>
 </html>

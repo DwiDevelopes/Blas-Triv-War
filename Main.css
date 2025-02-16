@@ -249,3 +249,138 @@ p {
     }
 }
 
+/* Versi Desktop */
+/* ... (CSS yang sudah ada) ... */
+
+/* Versi Mobile */
+@media only screen and (max-width: 768px) {
+    body {
+        font-size: 14px; /* Ukuran font lebih kecil untuk mobile */
+    }
+
+    h1 {
+        font-size: 24px; /* Ukuran judul lebih kecil */
+        margin-bottom: 10px;
+    }
+
+    #game-container {
+        width: 95%; /* Lebih lebar untuk memanfaatkan layar kecil */
+        margin-top: 10px;
+    }
+
+    canvas {
+        width: 100%; /* Canvas menyesuaikan lebar layar */
+        height: auto; /* Tinggi menyesuaikan */
+    }
+
+    p, span, #score, #level {
+        font-size: 16px; /* Ukuran font lebih kecil untuk teks lainnya */
+        position: static; /* Menghilangkan posisi absolut untuk tata letak yang lebih fleksibel */
+        margin-top: 5px;
+    }
+
+    .game-button {
+        padding: 8px 16px; /* Tombol lebih kecil */
+        font-size: 16px;
+        margin-top: 10px;
+    }
+
+    #game-over-screen p {
+        font-size: 24px; /* Ukuran font lebih kecil untuk layar game over */
+        position: static;
+    }
+
+    /* Menyesuaikan animasi untuk mobile */
+    @keyframes fadeIn {
+        0% {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes bounceIn {
+        0% {
+            transform: scale(0.7);
+            opacity: 0;
+        }
+        50% {
+            transform: scale(1.05);
+            opacity: 1;
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    @keyframes slideIn {
+        0% {
+            transform: translateX(-50px);
+            opacity: 0;
+        }
+        100% {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+}
+
+#mobile-controls {
+    display: none; /* Sembunyikan secara default */
+    position: fixed;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    height: 150px;
+    pointer-events: none; /* Biarkan event sentuh melewati elemen ini */
+}
+
+/* Area Joystick */
+#joystick-area {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: 100px;
+    height: 100px;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    pointer-events: auto; /* Aktifkan event sentuh */
+}
+
+/* Joystick */
+#joystick {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50px;
+    height: 50px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+    transition: transform 0.1s ease;
+}
+
+/* Tombol Tembak */
+#shoot-button {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 80px;
+    height: 80px;
+    background-color: rgba(255, 0, 0, 0.7);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 16px;
+    pointer-events: auto; /* Aktifkan event sentuh */
+}
+
+/* Tampilkan kontrol mobile hanya di perangkat dengan lebar layar kecil */
+@media only screen and (max-width: 768px) {
+    #mobile-controls {
+        display: block;
+    }
+}

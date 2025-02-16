@@ -6,6 +6,7 @@
     <title>Blash Triv War</title>
     <link rel="stylesheet" href="Main.css">
     <link rel="icon" type="image/x-icon" href="icon/Blash Triv War.ico">
+    <script src="Java/control_android.js"></script>
 </head>
 <body>
     <div id="game-container">
@@ -16,11 +17,20 @@
         <button id="startButton" class="game-button">Start Game</button>
         <a href="index.html"><button id="startButton" class="game-button">Back to Menu</button></a>
     </div>
-    
     <div id="game-over-screen">
         <p style = "font-size: 50px;"><center>Game Over!</center></p>
         <button id="restartButton" class="game-button">Restart Game</button>
         <a href="index.html"><button id="restartButton" class="game-button">Back to Menu</button></a>
+    </div>
+
+    <div id="mobile-controls">
+        <!-- Joystick Area -->
+        <div id="joystick-area">
+            <div id="joystick"></div>
+        </div>
+    
+        <!-- Tombol Tembak -->
+        <button id="shoot-button">Shoot</button>
     </div>
 
     <script>
@@ -262,6 +272,80 @@
             resetGame();
             startButton.click(); // Automatically start the game when restarting
         });
+
+        // Dapatkan elemen joystick dan area joystick
+const joystick = document.getElementById('joystick');
+const joystickArea = document.getElementById('joystick-area');
+const shootButton = document.getElementById('shoot-button');
+
+// Variabel untuk menyimpan posisi joystick
+let joystickPosition = { x: 0, y: 0 };
+const joystickRadius = 50; // Radius area joystick
+
+// Event listener untuk joystick
+joystickArea.addEventListener('touchstart', handleJoystickStart);
+joystickArea.addEventListener('touchmove', handleJoystickMove);
+joystickArea.addEventListener('touchend', handleJoystickEnd);
+
+// Event listener untuk tombol tembak
+shootButton.addEventListener('touchstart', () => shoot());
+
+// Fungsi untuk memulai gerakan joystick
+function handleJoystickStart(event) {
+    event.preventDefault();
+    updateJoystickPosition(event.touches[0]);
+}
+
+// Fungsi untuk menggerakkan joystick
+function handleJoystickMove(event) {
+    event.preventDefault();
+    updateJoystickPosition(event.touches[0]);
+}
+
+// Fungsi untuk menghentikan gerakan joystick
+function handleJoystickEnd() {
+    joystickPosition = { x: 0, y: 0 };
+    joystick.style.transform = `translate(-50%, -50%)`;
+    updatePlayerMovement();
+}
+
+// Fungsi untuk memperbarui posisi joystick
+function updateJoystickPosition(touch) {
+    const rect = joystickArea.getBoundingClientRect();
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+
+    // Hitung posisi relatif sentuhan
+    const touchX = touch.clientX - rect.left - centerX;
+    const touchY = touch.clientY - rect.top - centerY;
+
+    // Batasi gerakan joystick dalam radius
+    const distance = Math.sqrt(touchX * touchX + touchY * touchY);
+    if (distance <= joystickRadius) {
+        joystickPosition = { x: touchX, y: touchY };
+    } else {
+        const angle = Math.atan2(touchY, touchX);
+        joystickPosition = {
+            x: Math.cos(angle) * joystickRadius,
+            y: Math.sin(angle) * joystickRadius,
+        };
+    }
+
+    // Pindahkan joystick
+    joystick.style.transform = `translate(${joystickPosition.x}px, ${joystickPosition.y}px) translate(-50%, -50%)`;
+
+    // Perbarui pergerakan pemain
+    updatePlayerMovement();
+}
+
+// Fungsi untuk memperbarui pergerakan pemain berdasarkan joystick
+function updatePlayerMovement() {
+    const sensitivity = 2; // Sesuaikan kecepatan gerakan
+    keyState.up = joystickPosition.y < -10; // Gerak ke atas
+    keyState.down = joystickPosition.y > 10; // Gerak ke bawah
+    keyState.left = joystickPosition.x < -10; // Gerak ke kiri
+    keyState.right = joystickPosition.x > 10; // Gerak ke kanan
+}
 
     </script>
 </body>
